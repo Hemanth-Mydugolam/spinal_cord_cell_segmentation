@@ -1,54 +1,127 @@
-# Spinal Cord Segmentation
+# Spinal Cord Segmentation Pipeline
 
-An automated pipeline for segmenting spinal cord images using Cellpose.
+Automated, end‑to‑end processing and segmentation of spinal‑cord microscopy images with [Cellpose](https://cellpose.readthedocs.io/).
 
-## Overview
+---
 
-This project provides a complete workflow for processing and segmenting spinal cord images. It includes tools for converting TIFF images to PNG, splitting large images into manageable pieces, performing segmentation using Cellpose, and stitching the results back together.
+## 🏷️ Overview
 
-## Features
+This repository provides a **turn‑key workflow** for turning raw histological slides of the spinal cord (TIFF) into high‑quality, full‑resolution segmentation masks—in a *single command*.
 
-- TIFF to PNG conversion with customizable scaling
-- Automatic image splitting for large images
-- Cellpose-based segmentation using the cyto3 model
-- Mask stitching for reconstructing full segmentation results
+---
 
-## Requirements
+## ✨ Key Features
 
-The project requires Python and several dependencies listed in `requirements.txt`. Key dependencies include:
+| Stage | Purpose |
+|-------|---------|
+| **TIFF → PNG conversion** | Converts raw `.tiff` slides to compressed `.png`, with optional down‑scaling to speed up processing. |
+| **Smart tiling** | Splits very large images into manageable tiles that fit comfortably in GPU/CPU memory. |
+| **Cellpose inference** | Runs the *cyto3* (default) or any other Cellpose model on every tile. |
+| **Mask stitching** | Re‑assembles the individual tile masks into a single, full‑resolution segmentation mask. |
 
-- cellpose==3.1.1.1
-- opencv-python
-- numpy
-- pillow
-- tifffile
+---
 
-## Usage
+## 📦 Requirements
 
-1. Place your TIFF images in the designated input directory
-2. Run the main pipeline:
+* Python **3.9+**
+* GPU‑enabled PyTorch build (optional but recommended)
+* Dependencies (installed automatically via `requirements.txt`):
+  * `cellpose==3.1.1.1`
+  * `opencv‑python`
+  * `numpy`
+  * `pillow`
+  * `tifffile`
+
+---
+
+## 🛠️ Installation
 
 ```bash
-python main.py
+# Clone the repository
+git clone https://github.com/your‑username/spinal‑cord‑segmentation.git
+cd spinal‑cord‑segmentation
+
+# Create / activate a virtualenv (optional but recommended)
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# Install Python dependencies
+pip install -r requirements.txt
 ```
 
-The pipeline will:
-1. Convert TIFF images to PNG format
-2. Split the images into smaller sections
-3. Process the sections using Cellpose
-4. Stitch the resulting masks back together
+---
 
-## Project Structure
+## 🚀 Quick Start
 
-- `main.py`: Main pipeline script
-- `bin/`
-  - `constants.py`: Configuration and path constants
-  - `generate_pngs.py`: TIFF to PNG conversion
-  - `generate_split_images.py`: Image splitting functionality
-  - `generate_masks.py`: Mask stitching utilities
-- `model/`
-  - `run_cellpose.py`: Cellpose model implementation
+1. **Place** your raw `.tiff` images in `data/input/` (or adjust the paths in `bin/constants.py`).
+2. **Run** the pipeline:
 
-## License
+   ```bash
+   python main.py
+   ```
+3. **Collect** your results:
+   * PNG conversions → `data/png/`
+   * Split tiles → `data/tiles/`
+   * Cellpose masks → `data/masks/`
+   * Stitched masks → `data/output/`
 
-See the LICENSE file for details.
+---
+
+## 🔍 Detailed Workflow
+
+```mermaid
+flowchart LR
+    A[TIFF images] --> B[generate_pngs.py]:::step
+    classDef step fill:#fafafa,stroke:#333,stroke-width:1px;
+    B --> C[generate_split_images.py]:::step
+    C --> D[run_cellpose.py]:::step
+    D --> E[generate_masks.py]:::step
+    E --> F[Final segmentation]:::step
+```
+
+*All paths, tile overlap, and Cellpose parameters are configurable in* **`bin/constants.py`**.
+
+---
+
+## 🗂 Project Layout
+
+```
+.
+├── main.py              # Orchestrates the full pipeline
+├── bin/
+│   ├── constants.py     # Centralised paths & tunables
+│   ├── generate_pngs.py # TIFF → PNG converter
+│   ├── generate_split_images.py
+│   └── generate_masks.py
+├── model/
+│   └── run_cellpose.py  # Wrapper around Cellpose API
+├── requirements.txt
+└── LICENSE
+```
+
+---
+
+## 📄 License
+
+Distributed under the terms of the **MIT License**.  See `LICENSE` for full text.
+
+---
+
+## 🙌 Contributing
+
+Contributions, issues and feature requests are welcome!  Please open an issue or submit a pull request — and ensure your code passes `flake8`/`black` checks and includes appropriate tests.
+
+---
+
+## 🧑‍🔬 Citation
+
+If you use this pipeline in your research, please cite *Cellpose* **and** this repository:
+
+```text
+@article{stringer_cellpose_2021,
+  title   = {Cellpose: a generalist algorithm for cellular segmentation},
+  author  = {Stringer, Carsen and Pachitariu, Marius},
+  journal = {Nature Methods},
+  year    = {2021}
+}
+```
