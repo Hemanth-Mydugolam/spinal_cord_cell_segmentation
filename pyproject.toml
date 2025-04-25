@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "auto_segmenter"
+version = "0.1.0"
+description = "Automated cell segmentation pipeline"
+authors = ["Nikhil Nageshwar Inturi <inturinikhilnageshwar@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+# list your runtime deps here:
+streamlit = "^1.25.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
