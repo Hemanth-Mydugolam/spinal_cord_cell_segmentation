@@ -1,17 +1,19 @@
-# usage
+# imports
+from doctest import OutputChecker
 import logging
+from pathlib import Path
 from bin.constants import *
 from bin.generate_masks import MaskStitcher
 from bin.generate_pngs import TiffToPngConverter
-from bin.generate_split_images import ImageSplitter
 from model.run_cellpose import CellposeBatchProcessor
+from bin.generate_image_overlays import OverlayGenerator
 
-# # generate - pngs
+# generate - pngs
 setup_logging(logging.INFO)
 converter = TiffToPngConverter(scaling_factor=SCALING_FACTOR, tif_dir=TIF_IMAGES_DIR, output_dir=PNG_IMAGES_DIR)
 converter.convert_all()
 
-# # generate - splits
+# generate - splits
 setup_logging(logging.INFO)
 splitter = ImageSplitter(source_dir=PNG_IMAGES_DIR, output_dir=SPLIT_IMAGES_DIR, sub_image_width=IMG_WIDTH, sub_image_height=IMG_HEIGHT)
 splitter.split_all()
@@ -26,3 +28,7 @@ processor.process_all()
 setup_logging(logging.INFO)
 stitcher = MaskStitcher(input_dir=CELLPOSE_MASKS_DIR, output_dir=STITCHED_MASKS_DIR)
 stitcher.stitch_all()
+
+# img-mask overlay & comparison
+overlay_gen = OverlayGenerator(original_dir = PNG_IMAGES_DIR, mask_dir = STITCHED_MASKS_DIR, output_dir = OUTPUT_DIR, mask_color = (255, 0, 0), alpha = 0.5)
+overlay_gen.run()

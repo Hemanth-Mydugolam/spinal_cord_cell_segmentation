@@ -2,15 +2,11 @@
 
 Automated, end‑to‑end processing and segmentation of spinal‑cord microscopy images with [Cellpose](https://cellpose.readthedocs.io/).
 
----
-
-## 🏷️ Overview
+## Overview
 
 This repository provides a **turn‑key workflow** for turning raw histological slides of the spinal cord (TIFF) into high‑quality, full‑resolution segmentation masks—in a *single command*.
 
----
-
-## ✨ Key Features
+## Key Features
 
 | Stage | Purpose |
 |-------|---------|
@@ -19,9 +15,7 @@ This repository provides a **turn‑key workflow** for turning raw histological 
 | **Cellpose inference** | Runs the *cyto3* (default) or any other Cellpose model on every tile. |
 | **Mask stitching** | Re‑assembles the individual tile masks into a single, full‑resolution segmentation mask. |
 
----
-
-## 📦 Requirements
+## Requirements
 
 * Python **3.9+**
 * GPU‑enabled PyTorch build (optional but recommended)
@@ -32,9 +26,7 @@ This repository provides a **turn‑key workflow** for turning raw histological 
   * `pillow`
   * `tifffile`
 
----
-
-## 🛠️ Installation
+## Installation
 
 ```bash
 # Clone the repository
@@ -49,9 +41,7 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
----
-
-## 🚀 Quick Start
+## Quick Start
 
 1. **Place** your raw `.tiff` images in `data/input/` (or adjust the paths in `bin/constants.py`).
 2. **Run** the pipeline:
@@ -65,9 +55,7 @@ pip install -r requirements.txt
    * Cellpose masks → `data/masks/`
    * Stitched masks → `data/output/`
 
----
-
-## 🔍 Detailed Workflow
+## Detailed Workflow
 
 ```mermaid
 flowchart LR
@@ -81,9 +69,7 @@ flowchart LR
 
 *All paths, tile overlap, and Cellpose parameters are configurable in* **`bin/constants.py`**.
 
----
-
-## 🗂 Project Layout
+## Project Layout
 
 ```
 .
@@ -99,21 +85,15 @@ flowchart LR
 └── LICENSE
 ```
 
----
-
-## 📄 License
+## License
 
 Distributed under the terms of the **MIT License**.  See `LICENSE` for full text.
 
----
-
-## 🙌 Contributing
+## Contributing
 
 Contributions, issues and feature requests are welcome!  Please open an issue or submit a pull request — and ensure your code passes `flake8`/`black` checks and includes appropriate tests.
 
----
-
-## 🧑‍🔬 Citation
+## Citation
 
 If you use this pipeline in your research, please cite *Cellpose* **and** this repository:
 

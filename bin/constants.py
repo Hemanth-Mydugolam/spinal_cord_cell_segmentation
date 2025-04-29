@@ -15,14 +15,14 @@ def setup_logging(level: Union[int, str] = logging.INFO) -> None:
 
 SCALING_FACTOR = 0.2125
 IMG_HEIGHT, IMG_WIDTH = 640, 640
-CONFIG_DIR = Path('/mnt/WorkingDos/spinal_cord_data')
-TIF_IMAGES_DIR = CONFIG_DIR / '18S_images'
+CONFIG_DIR = Path('/Users/discovery/Downloads/xenium_testing_jit/ish_hDGR_samples')
+TIF_IMAGES_DIR = CONFIG_DIR / '1_tif_images'
 
 PNG_IMAGES_DIR = CONFIG_DIR / '2_png_images'
 SPLIT_IMAGES_DIR = CONFIG_DIR / '3_split_images'
 CELLPOSE_MASKS_DIR = CONFIG_DIR / '4_cellpose_masks'
 STITCHED_MASKS_DIR = CONFIG_DIR / '5_stitched_masks'
-
+OUTPUT_DIR = CONFIG_DIR / '6_output_masks'
 
 MASKS_DIR = 'masks'
 PREVIEW_DIR = 'preview'
