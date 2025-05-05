@@ -1,12 +1,12 @@
 # imports
-from doctest import OutputChecker
 import logging
 from pathlib import Path
-from bin.constants import *
-from bin.generate_masks import MaskStitcher
-from bin.generate_pngs import TiffToPngConverter
+from utils.constants import *
+from utils.generate_split_images import ImageSplitter
+from utils.generate_masks import MaskStitcher
+from utils.generate_pngs import TiffToPngConverter
 from model.run_cellpose import CellposeBatchProcessor
-from bin.generate_image_overlays import OverlayGenerator
+from utils.generate_image_overlays import OverlayGenerator
 
 # generate - pngs
 setup_logging(logging.INFO)
@@ -21,7 +21,7 @@ splitter.split_all()
 # cellpose - masks
 setup_logging(logging.INFO)
 processor = CellposeBatchProcessor(input_dir=SPLIT_IMAGES_DIR, output_dir=CELLPOSE_MASKS_DIR, model_name="cyto3_restore",
-                                   bsize=2048, overlap=0.15, batch_size=6, gpu=0, channels=(1,0))
+                                   bsize=2048, overlap=0.15, batch_size=6, gpu=0, channels=(2,0), diameter=40)
 processor.process_all()
 
 # stitch - masks

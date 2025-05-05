@@ -15,7 +15,7 @@ from cellpose import plot as cplt
 import os, numpy as np, logging, matplotlib.pyplot as plt
 
 # local imports
-from bin.constants import *
+from utils.constants import *
 
 
 class CellposeBatchProcessor:
@@ -25,7 +25,7 @@ class CellposeBatchProcessor:
     """
 
     def __init__(self, input_dir: Union[str, Path], output_dir: Union[str, Path], model_name: str = "cyto3_restore",
-                 bsize: int = 2048, overlap: float = 0.15, batch_size: int = 6, gpu: int = 0, channels: Tuple[int, int] = (1, 0),) -> None:
+                 bsize: int = 2048, overlap: float = 0.15, batch_size: int = 6, gpu: int = 0, channels: Tuple[int, int] = (1, 0), diameter: int = 50) -> None:
         self.input_dir = Path(input_dir)
         self.output_dir = Path(output_dir)
         self.model_name = model_name
@@ -34,6 +34,7 @@ class CellposeBatchProcessor:
         self.batch_size = batch_size
         self.gpu = gpu
         self.channels = list(channels)
+        self.diameter = diameter
 
         if self.gpu >= 0:
             os.environ["CUDA_VISIBLE_DEVICES"] = str(self.gpu)
@@ -78,7 +79,7 @@ class CellposeBatchProcessor:
         masks, flows, styles = self.model.eval(
             img,
             channels=self.channels,
-            diameter=None,
+            diameter=self.diameter,
             bsize=self.bsize,
             tile_overlap=self.overlap,
             batch_size=self.batch_size,
