@@ -15,8 +15,10 @@ def setup_logging(level: Union[int, str] = logging.INFO) -> None:
 # from constants import setup_logging
 # setup_logging(logging.INFO)
 
-SCALING_FACTOR = 0.2125
+MODEL = "/Users/discovery/Downloads/xenium_testing_jit/spinal_cord_samples_fr/train/models/cellpose_1746568542.462492"  # "cyto3_restore"
+SCALING_FACTOR = 0.2125  # 0.10625  # 0.2125
 IMG_HEIGHT, IMG_WIDTH = 1024, 1024  # 640, 640
+CELL_DIAMETER = 30.0
 # CONFIG_DIR = Path('/Users/discovery/Downloads/xenium_testing_jit/ish_hDGR_samples_fr')
 CONFIG_DIR = Path('/Users/discovery/Downloads/xenium_testing_jit/spinal_cord_samples_fr')
 

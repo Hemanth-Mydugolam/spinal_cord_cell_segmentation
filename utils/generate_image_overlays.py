@@ -19,7 +19,7 @@ class OverlayGenerator:
     create an overlay with transparency, and a side-by-side composite.
     """
     def __init__(self, original_dir: Union[str, Path], mask_dir: Union[str, Path], output_dir: Union[str, Path], 
-    mask_color: tuple = (255, 0, 0), alpha: float = 0.5) -> None:
+    mask_color: tuple = (255, 0, 0), alpha: float = 0.8) -> None:
         self.original_dir = Path(original_dir)
         self.mask_dir = Path(mask_dir)
         self.output_dir = Path(output_dir)
