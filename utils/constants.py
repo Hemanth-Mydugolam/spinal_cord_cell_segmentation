@@ -15,9 +15,9 @@ def setup_logging(level: Union[int, str] = logging.INFO) -> None:
 # from constants import setup_logging
 # setup_logging(logging.INFO)
 
-MODEL = "/Users/discovery/Downloads/xenium_testing_jit/spinal_cord_samples_fr/train/models/cellpose_1746568542.462492"  # "cyto3_restore"
+MODEL = "cyto3_restore"  # "/Users/discovery/Downloads/xenium_testing_jit/spinal_cord_samples_fr/train/models/cellpose_1746568542.462492"  # "cyto3_restore"
 SCALING_FACTOR = 0.2125  # 0.10625  # 0.2125
-IMG_HEIGHT, IMG_WIDTH = 1024, 1024  # 640, 640
+IMG_HEIGHT, IMG_WIDTH = 640, 640  # 640, 640
 CELL_DIAMETER = 30.0
 # CONFIG_DIR = Path('/Users/discovery/Downloads/xenium_testing_jit/ish_hDGR_samples_fr')
 CONFIG_DIR = Path('/Users/discovery/Downloads/xenium_testing_jit/spinal_cord_samples_fr')
@@ -29,6 +29,10 @@ SPLIT_IMAGES_DIR = CONFIG_DIR / '3_split_images'
 CELLPOSE_MASKS_DIR = CONFIG_DIR / '4_cellpose_masks'
 STITCHED_MASKS_DIR = CONFIG_DIR / '5_stitched_masks'
 OUTPUT_DIR = CONFIG_DIR / '6_output_masks'
+TRAIN_MASKS_DIR = CONFIG_DIR / '7_train_masks'
+TRAIN_SPLIT_IMG_MASKS_DIR = CONFIG_DIR / '8_train_split_img_masks'
+
+GEOJSON_DIR = Path('/Users/discovery/Downloads/xenium_testing_jit/spinal_cord_samples_fr/geojsons_dir')
 
 MASKS_DIR = 'masks'
 PREVIEW_DIR = 'preview'
