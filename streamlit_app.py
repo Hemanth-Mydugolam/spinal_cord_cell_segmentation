@@ -7,6 +7,7 @@ then displays results and provides download links.
 
 # imports
 import streamlit as st, logging, shutil
+from PIL import Image
 from pathlib import Path
 from utils.constants import *
 from utils.generate_plots import PlotGenerator
@@ -65,6 +66,9 @@ if uploaded:
 
     if geojson_file.exists():
         st.download_button(label="Download .geojson mask", data=open(geojson_file, "rb"), file_name=geojson_file.name)
-
+    
+    overlay_file = OUTPUT_DIR / f"{stem}_overlay.png"
+    if overlay_file.exists():
+        st.image(Image.open(overlay_file), caption="{stem} - overlay", use_column_width=True)
 else:
     st.info("Please upload a TIFF image to begin.")
