@@ -1,0 +1,6 @@
+utils/__pycache__
+bin/__pycache__
+model/__pycache__
+test.py
+.DS_Store
+data
