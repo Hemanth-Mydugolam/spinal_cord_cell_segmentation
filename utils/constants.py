@@ -34,7 +34,7 @@ TRAIN_MASKS_DIR = CONFIG_DIR / '7_train_masks'
 TRAIN_SPLIT_IMG_MASKS_DIR = CONFIG_DIR / '8_train_split_img_masks'
 GEOJSON_OUTS_DIR = CONFIG_DIR / '9_geojson_outs'
 
-GEOJSON_DIR = Path('/Users/discovery/Downloads/xenium_testing_jit/spinal_cord_samples_fr/geojsons_dir')
+GEOJSON_DIR = Path('/Users/discovery/Downloads/xenium_testing_jit/spinal_cord_samples_fr/geojsons_dir')  # training param
 
 MASKS_DIR = 'masks'
 PREVIEW_DIR = 'preview'
