@@ -1,103 +1,70 @@
 #!/usr/bin/env python3
 """
 Streamlit front-end for the Cellpose automation pipeline.
-Allows uploading a TIF, runs conversion → split → cellpose → stitching → overlay/comparison,
+Allows uploading a TIF, runs conversion → split → cellpose → stitching → overlay/comparison → geojson,
 then displays results and provides download links.
 """
 
 # imports
-import streamlit as st
+import streamlit as st, logging, shutil
 from pathlib import Path
-from bin.constants import *
-from bin.generate_masks import MaskStitcher
-from bin.generate_pngs import TiffToPngConverter
+from utils.constants import *
+from utils.generate_plots import PlotGenerator
+from utils.generate_split_images import ImageSplitter
+from utils.generate_masks import MaskStitcher
+from utils.generate_combine_masks import NPYMaskStitcher
+from utils.generate_pngs import TiffToPngConverter
 from model.run_cellpose import CellposeBatchProcessor
-from bin.generate_image_overlays import OverlayGenerator
+from utils.generate_image_overlays import OverlayGenerator
+from model.run_cellpose_sam import cellpose_sam_detect_images_eval
+from utils.generate_geojson_qp_mask import MaskToGeoJSONConverter
 
-# ensure directories
-for d in [TIF_IMAGES_DIR, PNG_IMAGES_DIR, SPLIT_IMAGES_DIR, CELLPOSE_MASKS_DIR, STITCHED_MASKS_DIR, OUTPUT_DIR]:
-    Path(d).mkdir(parents=True, exist_ok=True)
+dirs = [TIF_IMAGES_DIR, PNG_IMAGES_DIR, SPLIT_IMAGES_DIR, CELLPOSE_MASKS_DIR, STITCHED_MASKS_DIR, OUTPUT_DIR, GEOJSON_OUTS_DIR]
 
-st.title("Cellpose Automation Pipeline")
+st.title("Cellpose-sam for DRGs - Automated Pipeline")
 
-uploaded = st.file_uploader("Upload a TIFF image", type=["tif", "tiff"])
+uploaded = st.file_uploader("Upload a TIFF image", type=["tif"])
 if uploaded:
-    # save TIFF
+
+    for d in dirs:
+        p = Path(d)
+        if p.exists() and p.is_dir():
+            shutil.rmtree(p) # to refresh the directory
+        p.mkdir(parents=True, exist_ok=True)
+
     tif_path = TIF_IMAGES_DIR / uploaded.name
     with open(tif_path, "wb") as f:
-        f.write(uploaded.getbuffer())
+        f.write(uploaded.getbuffer())  # save TIFF
     st.success(f"Saved input to {tif_path}")
     stem = tif_path.stem
 
-    # 1) TIFF → PNG
+    # generate - pngs
     with st.spinner("Converting TIFF to PNG..."):
-        TiffToPngConverter(
-            scaling_factor=0.2125,
-            tif_dir=TIF_IMAGES_DIR,
-            output_dir=PNG_IMAGES_DIR
-        ).convert_all()
-
-    # 2) Split
+        TiffToPngConverter(scaling_factor=SCALING_FACTOR, tif_dir=TIF_IMAGES_DIR, output_dir=PNG_IMAGES_DIR).convert_all()
+    # generate - splits
     with st.spinner("Splitting PNG into tiles..."):
-        ImageSplitter(
-            source_dir=PNG_IMAGES_DIR,
-            output_dir=SPLIT_IMAGES_DIR,
-            sub_image_width=640,
-            sub_image_height=640
-        ).split_all()
-
-    # 3) Segment
+        ImageSplitter(source_dir=PNG_IMAGES_DIR, output_dir=SPLIT_IMAGES_DIR, sub_image_width=IMG_WIDTH, sub_image_height=IMG_HEIGHT).split_all()
+    # generate - cellpose masks (detect step using a pre-trained model)
     with st.spinner("Running Cellpose segmentation..."):
-        CellposeBatchProcessor(
-            input_dir=SPLIT_IMAGES_DIR,
-            output_dir=CELLPOSE_MASKS_DIR,
-            model_name="cyto3_restore",
-            bsize=2048,
-            overlap=0.15,
-            batch_size=6,
-            gpu=0,
-            channels=(1,0)
-        ).process_all()
-
-    # 4) Stitch masks
+        cellpose_sam_detect_images_eval(model_path=MODEL, image_input_dir=SPLIT_IMAGES_DIR, image_output_dir=CELLPOSE_MASKS_DIR)
+    # generate - stitched masks (.npy files)
     with st.spinner("Stitching masks..."):
-        MaskStitcher(root_dir=CELLPOSE_MASKS_DIR, out_dir=STITCHED_MASKS_DIR).stitch_all()
-
-    # 5) Generate overlays & comparisons
-    overlay_dir = CONFIG_DIR / '6_overlays'
-    compare_dir = CONFIG_DIR / '7_comparisons'
+        NPYMaskStitcher(input_dir=CELLPOSE_MASKS_DIR, output_dir=STITCHED_MASKS_DIR).stitch_all()
+    # generate - plots
     with st.spinner("Generating overlays and comparisons..."):
-        OverlayGenerator(
-            original_dir=PNG_IMAGES_DIR,
-            mask_dir=STITCHED_MASKS_DIR,
-            output_dir=overlay_dir,
-            mask_color=(255,0,0),
-            alpha=0.5
-        ).run()
-        OverlayGenerator(
-            original_dir=PNG_IMAGES_DIR,
-            mask_dir=STITCHED_MASKS_DIR,
-            output_dir=compare_dir,
-            mask_color=(255,0,0),
-            alpha=0.0  # pure side-by-side; overlay not used
-        ).run()
+        PlotGenerator(image_dir=PNG_IMAGES_DIR, mask_dir=STITCHED_MASKS_DIR, output_dir=OUTPUT_DIR, overlay_color=(238,144,144), boundary_color=(100,100,255), alpha=0.5).run()
+    # generate - geojsons
+    with st.spinner("Generating GeoJSON files..."):
+        MaskToGeoJSONConverter(mask_dir=STITCHED_MASKS_DIR, output_dir=GEOJSON_OUTS_DIR, upscale_factor=SCALING_FACTOR).convert_all()
 
     st.success("Pipeline complete!")
 
-    # display overlay and comparison
-    st.header("Overlay")
-    st.image(str(overlay_dir / f"{stem}_overlay.png"), caption="Overlay", use_column_width=True)
-    st.header("Comparison")
-    st.image(str(compare_dir / f"{stem}_compare.png"), caption="Comparison", use_column_width=True)
+    # download buttons
+    st.header("Download segmentation masks")
+    geojson_file = GEOJSON_OUTS_DIR / f"{stem}.geojson"
 
-    # downloads
-    st.header("Downloads")
-    npy = STITCHED_DIR / f"{stem}_stitched.npy"
-    tif = STITCHED_DIR / f"{stem}_stitched.tif"
-    if npy.exists():
-        st.download_button("Download segmentation (.npy)", open(npy,'rb'), file_name=npy.name)
-    if tif.exists():
-        st.download_button("Download mask TIFF (.tif)", open(tif,'rb'), file_name=tif.name)
+    if geojson_file.exists():
+        st.download_button(label="Download .geojson mask", data=open(geojson_file, "rb"), file_name=geojson_file.name)
 
 else:
     st.info("Please upload a TIFF image to begin.")
