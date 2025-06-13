@@ -2,6 +2,7 @@
 
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue?logo=python)
 ![License](https://img.shields.io/github/license/unikill066/xenium_cell_segmentation)
+[![hugging face](https://huggingface.co/datasets/huggingface/badges/resolve/main/model-on-hf-md.svg)](https://huggingface.co/unikill066/drg_cellpose_sam_model)
 
 
 **End‑to‑end pipeline for segmenting spinal‑cord microscopy images using [Cellpose](https://github.com/MouseLand/cellpose).**
