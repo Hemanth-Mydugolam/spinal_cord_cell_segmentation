@@ -1,107 +1,177 @@
-# Spinal Cord Segmentation Pipeline
+# Xenium Cell Segmentation Pipeline
 
-Automated, end‑to‑end processing and segmentation of spinal‑cord microscopy images with [Cellpose](https://cellpose.readthedocs.io/).
+![Python](https://img.shields.io/badge/python-3.8%2B-blue?logo=python)
+![License](https://img.shields.io/github/license/unikill066/xenium_cell_segmentation)
 
-## Overview
 
-This repository provides a **turn‑key workflow** for turning raw histological slides of the spinal cord (TIFF) into high‑quality, full‑resolution segmentation masks—in a *single command*.
+**End‑to‑end pipeline for segmenting spinal‑cord microscopy images using [Cellpose](https://github.com/MouseLand/cellpose).**
 
-## Key Features
+> Drag‑and‑drop GUI (Streamlit) • Headless CLI • Custom training workflow
 
-| Stage | Purpose |
-|-------|---------|
-| **TIFF → PNG conversion** | Converts raw `.tiff` slides to compressed `.png`, with optional down‑scaling to speed up processing. |
-| **Smart tiling** | Splits very large images into manageable tiles that fit comfortably in GPU/CPU memory. |
-| **Cellpose inference** | Runs the *cyto3* (default) or any other Cellpose model on every tile. |
-| **Mask stitching** | Re‑assembles the individual tile masks into a single, full‑resolution segmentation mask. |
+## Table of Contents
 
-## Requirements
+* [Why this repo?](#why-this-repo)
+* [Quick Start (TL;DR)](#quick-start-tldr)
+* [Installation](#installation)
+* [Downloading Pre‑trained Weights](#downloading-pre-trained-weights)
+* [Configuring Paths & Parameters](#configuring-paths--parameters)
+* [Running the Pipeline](#running-the-pipeline)
 
-* Python **3.9+**
-* GPU‑enabled PyTorch build (optional but recommended)
-* Dependencies (installed automatically via `requirements.txt`):
-  * `cellpose==3.1.1.1`
-  * `opencv‑python`
-  * `numpy`
-  * `pillow`
-  * `tifffile`
+  * [Command‑line](#command-line)
+  * [Streamlit App](#streamlit-app)
+* [Training on Your Own Data](#training-on-your-own-data)
+* [Directory Structure](#directory-structure)
+* [Troubleshooting & FAQ](#troubleshooting--faq)
+* [Citing](#citing)
+* [License](#license)
+
+## Why this repo?
+
+- This repository provides a turn‑key workflow for turning raw histological slides of the Xenium Data (TIFF) into high‑quality, full‑resolution segmentation masks. 
+
+- Huge TIFF slides (>40k × 40k px) do not fit into GPU memory. This repo scaled down, breaks them into tiles, runs a pre-trained Cellpose-SAM model in parallel, then stitches the probability masks back together.
+
+- The same code powers a drag‑and‑drop Streamlit interface for bench scientists and a fully scriptable CLI for batch jobs.
+
+## Quick Start (TL;DR)
+
+```bash
+# 1. Clone & install
+git clone https://github.com/unikill066/xenium_cell_segmentation.git
+cd xenium_cell_segmentation
+pip install -r requirements.txt
+
+# 2. Put your slide(s) in ./data/input
+# 3. Download the model weights from huggingface/box and copy it to ./model/ model directory (see below)
+# 4. Edit utils/constants.py, with model path and config path 
+# 5. Run the pipeline
+python main.py
+```
+
 
 ## Installation
 
+### Python environment
+
+* Python ≥ 3.8
+* (Optional) CUDA‑enabled PyTorch for GPU speed‑ups
+  *Tested on CUDA 12.1 + RTX A5000.*
+
 ```bash
-# Clone the repository
-git clone https://github.com/your‑username/spinal‑cord‑segmentation.git
-cd spinal‑cord‑segmentation
-
-# Create / activate a virtualenv (optional but recommended)
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-
-# Install Python dependencies
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Quick Start
+### System packages
 
-1. **Place** your raw `.tiff` images in `data/input/` (or adjust the paths in `bin/constants.py`).
-2. **Run** the pipeline:
+| Dependency | Debian / Ubuntu                       | macOS (brew)           |
+| ---------- | ------------------------------------- | ---------------------- |
+| OpenCV     | `sudo apt-get install python3-opencv` | `brew install opencv`  |
+| Tiff       | `sudo apt-get install libtiff-dev`    | `brew install libtiff` |
+
+Override any parameter at the CLI with `--param=value`. See `python main.py --help`.
+
+## Running the Pipeline
+
+### Command‑line
+
+```bash
+python main.py
+```
+
+### Streamlit App
+
+```bash
+streamlit run streamlit_app.py
+```
+
+1. Drag a `.tif` (or folder) onto the **Upload** panel.
+2. Tune tile size & model on the sidebar.
+3. Click **Run segmentation** – outputs stream to `data/output/`.
+
+The app supports one upload at a time; progress bars updates live. More on the steps that go into the pipeline can be found here: <p align="left">
+  <a href="docs/step_process.md">
+    <img src="https://img.shields.io/badge/Step–by–Step-Docs-blue?style=for-the-badge" alt="Step-by-Step Docs">
+  </a>
+</p>
+
+
+## Training on Your Own Data
+
+1. **Annotate** nuclei or whole cells in **QuPath**
+
+   * Export objects as **GeoJSON** (`File › Object data › Export as GeoJSON`).
+   * Export the corresponding raw slide as an **OME‑TIFF**.
+
+2. **Generate training patches**
 
    ```bash
-   python main.py
+   python generate_training_data.py
    ```
-3. **Collect** your results:
-   * PNG conversions → `data/png/`
-   * Split tiles → `data/tiles/`
-   * Cellpose masks → `data/masks/`
-   * Stitched masks → `data/output/`
 
-## Detailed Workflow
+3. **Fine‑tune Cellpose** (`cellpose/train.py`). Example:
 
-```mermaid
-flowchart LR
-    A[TIFF images] --> B[generate_pngs.py]:::step
-    classDef step fill:#fafafa,stroke:#333,stroke-width:1px;
-    B --> C[generate_split_images.py]:::step
-    C --> D[run_cellpose.py]:::step
-    D --> E[generate_masks.py]:::step
-    E --> F[Final segmentation]:::step
-```
+   ```python
+   python -m bin/train_cellpose_sam.py
+   ```
 
-*All paths, tile overlap, and Cellpose parameters are configurable in* **`bin/constants.py`**.
+   > Note: Make sure to update the constants in `train_dir` and `model_name` in`bin/train_cellpose_sam.py`.
 
-## Project Layout
+4. Update `MODEL_PATH` and re‑run inference.
+   For hyper‑parameter suggestions see the [Cellpose docs](https://cellpose.readthedocs.io).
+
+   > Note: Download and copy this model to models directory.
+   > 
+   > Model weights are uploaded to Hugging Face: [DRG Cellpose-SAM Model](https://huggingface.co/unikill066/drg_cellpose_sam_model)
+
+## Directory Structure
 
 ```
-.
-├── main.py              # Orchestrates the full pipeline
-├── bin/
-│   ├── constants.py     # Centralised paths & tunables
-│   ├── generate_pngs.py # TIFF → PNG converter
-│   ├── generate_split_images.py
-│   └── generate_masks.py
-├── model/
-│   └── run_cellpose.py  # Wrapper around Cellpose API
-├── requirements.txt
-└── LICENSE
+xenium_cell_segmentation/
+├── bin/           # one‑shot utility scripts for training a new cellpose / cellpose-sam models
+├── model/         # pre‑trained & fine‑tuned weights
+├── utils/         # reusable helpers (tiling, stitching, viz, etc.)
+├── notebooks/     # jupyter demos and exploratory analysis
+├── docs/          # extra figures & extended docs
+├── data/          # auto‑generated at runtime
+│   ├── input/     # raw slides (.tif)
+│   ├── tiles/     # png tiles fed to cellpose
+│   ├── masks/     # per‑tile masks
+│   └── output/    # stitched full‑res masks
+└── streamlit_app.py
 ```
+
+Additional Documentation:
+<p align="left">
+  <a href="docs/xenium_cell_segmentation.md">
+    <img src="https://img.shields.io/badge/Xenium–Cell–Segmentation-Docs-blue?style=for-the-badge" alt="Xenium Cell Segmentation Docs">
+  </a>
+</p>
+
+
+## Troubleshooting & FAQ
+
+| Symptom                                | Fix                                                              |
+| -------------------------------------- | ---------------------------------------------------------------- |
+| **OOM on GPU**                         | Lower `--tile_px`, increase overlap.                             |
+| **No masks produced**                  | Check contrast / staining; try `--net_avg=False` with Cellpose.  |
+| **Streamlit app upload fails >200 MB** | Increase `server.maxUploadSize` in `~/.streamlit/config.toml`.   |
+| **GeoJSON mis‑aligned with slide**     | Verify that QuPath export uses *Entire Image* coordinate system. |
+
+## Citing
+
+If you use this code, please cite:
+
+```
+@article{Stringer_2025_Cellpose-SAM,
+  title={Cellpose-SAM: how to train your own model},
+  author={Stringer, Carsen and Pachitariu, Marius},
+  journal={Nat. Methods},
+  year={2025}
+}
+```
+[Cellpose-SAM paper](https://www.biorxiv.org/content/10.1101/2025.04.28.651001v1): Pachitariu, M., Rariden, M., & Stringer, C. (2025). Cellpose-SAM: superhuman generalization for cellular segmentation. bioRxiv.
 
 ## License
 
-Distributed under the terms of the **MIT License**.  See `LICENSE` for full text.
-
-## Contributing
-
-Contributions, issues and feature requests are welcome!  Please open an issue or submit a pull request — and ensure your code passes `flake8`/`black` checks and includes appropriate tests.
-
-## Citation
-
-If you use this pipeline in your research, please cite *Cellpose* **and** this repository:
-
-```text
-@article{stringer_cellpose_2021,
-  title   = {Cellpose: a generalist algorithm for cellular segmentation},
-  author  = {Stringer, Carsen and Pachitariu, Marius},
-  journal = {Nature Methods},
-  year    = {2021}
-}
-```
+This project is licensed under the MIT License – see `LICENSE` for details.
