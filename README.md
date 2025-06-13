@@ -47,6 +47,9 @@ pip install -r requirements.txt
 # 5. Run the pipeline
 python main.py
 ```
+## Quick Demo
+[![Launch Demo](https://img.shields.io/badge/Launch-Demo-red?style=for-the-badge&logo=streamlit&logoColor=white)](demo/xenium_seg_cellposesam_demo.mp4)
+
 
 
 ## Installation
