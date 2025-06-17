@@ -1,15 +1,16 @@
+"""
+Runtime configuration and logging helpers for the Cellpose-SAM pipeline.
+"""
+
 # imports
-import logging
+import logging, sys, colorlog
 from pathlib import Path
 from typing import Union
 
-
-
-def setup_logging(level: Union[int, str] = logging.INFO) -> None:
-    """
-    Configure the root logger format and level.
-    """
-    logging.basicConfig(format="%(asctime)s [%(levelname)s] %(name)s: %(message)s", level=level)
+def setup_logging(level: int | str = "INFO") -> None:
+    handler = colorlog.StreamHandler(sys.stdout)
+    handler.setFormatter(colorlog.ColoredFormatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
+    logging.basicConfig(handlers=[handler], level=level, force=True)
 
 # setup_logging - usage
 # from constants import setup_logging
